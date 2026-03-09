@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="
+           http://www.liquibase.org/xml/ns/dbchangelog
+           https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.31.xsd">
+
+    <changeSet id="1-create-user-session" author="vladimir">
+
+        <createTable tableName="user_session">
+
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints
+                        primaryKey="true"
+                        primaryKeyName="pk_user_session"
+                        nullable="false"/>
+            </column>
+
+            <column name="chat_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+
+            <column name="locale" type="VARCHAR(10)"/>
+
+            <column name="first_name" type="VARCHAR(255)"/>
+
+            <column name="user_state" type="VARCHAR(50)"/>
+
+            <column name="selected_expert_id" type="VARCHAR(255)"/>
+
+            <column name="is_promo_activated" type="BOOLEAN"/>
+
+        </createTable>
+
+    </changeSet>
+
+</databaseChangeLog>

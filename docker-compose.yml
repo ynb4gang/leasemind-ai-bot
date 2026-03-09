@@ -1,0 +1,76 @@
+version: "3.9"
+
+services:
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    restart: unless-stopped
+
+    environment:
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: telegram-bot
+
+    ports:
+      - "5432:5432"
+
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U root -d telegram-bot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+
+
+  liquibase:
+    image: liquibase/liquibase:latest
+    container_name: liquibase
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    volumes:
+      - ./src/main/resources/db.changelog:/liquibase/changelog
+
+    command:
+      --url=jdbc:postgresql://postgres:5432/telegram-bot
+      --changeLogFile=db.changelog-master.xml
+      --username=root
+      --password=root
+      update
+
+
+
+  spring-bot:
+    build: .
+    container_name: spring-bot
+    restart: unless-stopped
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    ports:
+      - "8080:8080"
+
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/telegram-bot
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: root
+
+      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN}
+
+      FIREBASE_CREDENTIALS: /firebase/firebase-key.json
+
+    volumes:
+      - ./firebase:/firebase
+
+
+
+volumes:
+  postgres_data:
