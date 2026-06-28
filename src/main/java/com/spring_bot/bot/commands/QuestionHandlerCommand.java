@@ -4,6 +4,7 @@ import com.spring_bot.bot.events.MessageEvent;
 import com.spring_bot.bot.model.UserState;
 import com.spring_bot.bot.service.AiService;
 import com.spring_bot.bot.service.UserSessionService;
+import com.spring_bot.dashboard.service.QaAuditService;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
@@ -16,15 +17,18 @@ public class QuestionHandlerCommand implements Command {
     private final UserSessionService userSessionService;
     private final ApplicationEventPublisher eventPublisher;
     private final AiService aiService;
+    private final QaAuditService qaAuditService;
 
     public QuestionHandlerCommand(
             UserSessionService userSessionService,
             ApplicationEventPublisher eventPublisher,
-            AiService aiService
+            AiService aiService,
+            QaAuditService qaAuditService
     ) {
         this.userSessionService = userSessionService;
         this.eventPublisher = eventPublisher;
         this.aiService = aiService;
+        this.qaAuditService = qaAuditService;
     }
 
     @Override
@@ -43,6 +47,7 @@ public class QuestionHandlerCommand implements Command {
         String question = update.getMessage().getText();
         Locale locale = userSessionService.getLocale(chatId);
         String answer = aiService.answerQuestion(question, locale);
+        qaAuditService.saveExchange("telegram", chatId, String.valueOf(chatId), question, answer);
         userSessionService.setUserState(chatId, UserState.IDLE);
         SendMessage message = SendMessage.builder()
                 .chatId(chatId.toString())

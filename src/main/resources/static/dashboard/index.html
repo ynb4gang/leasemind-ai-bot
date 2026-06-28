@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Spring Bot Dashboard</title>
+    <link rel="stylesheet" href="/dashboard/styles.css" />
+</head>
+<body>
+<div class="app-shell">
+    <aside class="sidebar">
+        <div>
+            <div class="logo-wrap">
+                <div class="logo-mark">
+                    <div class="logo-orb"></div>
+                </div>
+                <div>
+                    <div class="brand">Spring Bot</div>
+                    <div class="brand-sub">Analytics Control Center</div>
+                </div>
+            </div>
+
+            <nav class="menu">
+                <button class="tab active" data-tab="analytics">
+                    <span>Overview</span>
+                    <small>Метрики, сигналы, темы</small>
+                </button>
+                <button class="tab" data-tab="insights">
+                    <span>Insights</span>
+                    <small>LLM + quality summary</small>
+                </button>
+                <button class="tab" data-tab="sql">
+                    <span>SQL Lab</span>
+                    <small>Read-only console</small>
+                </button>
+                <button class="tab admin-only" data-tab="admin">
+                    <span>Admin</span>
+                    <small>Users & roles</small>
+                </button>
+            </nav>
+        </div>
+
+        <div class="profile-card">
+            <div class="profile-avatar" id="profileAvatar">A</div>
+            <div>
+                <div id="userName" class="profile-name">Гость</div>
+                <div id="userRoles" class="profile-roles muted"></div>
+            </div>
+            <button id="logoutBtn" class="ghost-btn">Выйти</button>
+        </div>
+    </aside>
+
+    <main class="main">
+        <section id="loginView" class="login-screen">
+            <div class="login-card glass">
+                <div class="eyebrow">Secure Access</div>
+                <h1>Вход в аналитический дашборд</h1>
+                <p class="muted">Временная учётка для теста: <b>admin</b> / <b>admin</b></p>
+
+                <form id="loginForm" class="login-form">
+                    <label>
+                        <span>Логин</span>
+                        <input name="username" placeholder="admin" value="admin" required />
+                    </label>
+                    <label>
+                        <span>Пароль</span>
+                        <input name="password" type="password" placeholder="••••••••" value="admin" required />
+                    </label>
+                    <button type="submit" class="primary-btn">Войти</button>
+                </form>
+
+                <div id="loginError" class="error"></div>
+            </div>
+        </section>
+
+        <section id="appView" class="hidden">
+            <div id="analyticsTab" class="view active">
+                <div class="hero-card glass">
+                    <div>
+                        <div class="eyebrow">Operations Overview</div>
+                        <h1>Панель операционной аналитики</h1>
+                        <p class="muted">
+                            Обзор качества диалогов, активности, повторяющихся тем и внутренних аналитических сигналов.
+                        </p>
+                    </div>
+                    <div class="hero-actions">
+                        <button id="refreshOverviewBtn" class="secondary-btn">Обновить обзор</button>
+                    </div>
+                </div>
+
+                <div class="kpi-grid">
+                    <div class="metric-card glass accent-card">
+                        <div class="metric-label">Всего диалогов</div>
+                        <div id="kpiTotalMessages" class="metric-value">0</div>
+                        <div class="metric-foot">Все сохранённые Q/A</div>
+                    </div>
+                    <div class="metric-card glass">
+                        <div class="metric-label">Уникальные пользователи</div>
+                        <div id="kpiTotalUsers" class="metric-value">0</div>
+                        <div class="metric-foot">Distinct username</div>
+                    </div>
+                    <div class="metric-card glass">
+                        <div class="metric-label">Уникальные чаты</div>
+                        <div id="kpiTotalChats" class="metric-value">0</div>
+                        <div class="metric-foot">Distinct chat_id</div>
+                    </div>
+                    <div class="metric-card glass">
+                        <div class="metric-label">Активность 24ч</div>
+                        <div id="kpiMessages24h" class="metric-value">0</div>
+                        <div class="metric-foot">Последние 24 часа</div>
+                    </div>
+                    <div class="metric-card glass">
+                        <div class="metric-label">Активность 7д</div>
+                        <div id="kpiMessages7d" class="metric-value">0</div>
+                        <div class="metric-foot">Последние 7 дней</div>
+                    </div>
+                    <div class="metric-card glass">
+                        <div class="metric-label">Покрытие ответами</div>
+                        <div id="kpiAnswerCoverage" class="metric-value">0%</div>
+                        <div class="metric-foot">Доля записей с answer</div>
+                    </div>
+                </div>
+
+                <div class="signal-grid">
+                    <div class="signal-card glass">
+                        <div class="signal-label">Пиковый час</div>
+                        <div id="kpiPeakHour" class="signal-value">—</div>
+                    </div>
+                    <div class="signal-card glass">
+                        <div class="signal-label">Средняя длина вопроса</div>
+                        <div id="kpiAvgQuestionLength" class="signal-value">0</div>
+                    </div>
+                    <div class="signal-card glass">
+                        <div class="signal-label">Средняя длина ответа</div>
+                        <div id="kpiAvgAnswerLength" class="signal-value">0</div>
+                    </div>
+                    <div class="signal-card glass">
+                        <div class="signal-label">Последняя активность</div>
+                        <div id="kpiLatestActivity" class="signal-value small-value">—</div>
+                    </div>
+                </div>
+
+                <div class="overview-grid">
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Тренд активности</h2>
+                            <span class="muted">14 дней</span>
+                        </div>
+                        <div id="dailyTrendChart" class="bar-chart"></div>
+                    </div>
+
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Каналы</h2>
+                            <span class="muted">Top breakdown</span>
+                        </div>
+                        <div id="channelBreakdown" class="stack-list"></div>
+                    </div>
+
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Топ пользователей</h2>
+                            <span class="muted">По частоте</span>
+                        </div>
+                        <div id="topUsersBox" class="stack-list"></div>
+                    </div>
+
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Повторяющиеся темы</h2>
+                            <span class="muted">Normalized topics</span>
+                        </div>
+                        <div id="repeatedTopicsBox" class="stack-list"></div>
+                    </div>
+                </div>
+
+                <div class="overview-grid second-grid">
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Быстрые инсайты</h2>
+                            <span class="muted">Heuristic signals</span>
+                        </div>
+                        <div id="heuristicInsights" class="insight-list"></div>
+                    </div>
+
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Quality flags</h2>
+                            <span class="muted">Operational signals</span>
+                        </div>
+                        <div id="qualityFlags" class="insight-list"></div>
+                    </div>
+                </div>
+
+                <div class="two-col-layout">
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Internal Analytics Ask</h2>
+                            <span class="muted">Отдельный аналитический AI-контур</span>
+                        </div>
+                        <textarea id="analyticsQuestion" rows="7" placeholder="Например: какие темы чаще всего повторяются и что стоит проверить в SQL?"></textarea>
+                        <button id="askAnalyticsBtn" class="primary-btn">Сгенерировать аналитический ответ</button>
+                        <pre id="analyticsAnswer" class="result-box"></pre>
+                    </div>
+
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Последние Q/A</h2>
+                            <span class="muted">Sanitized recent records</span>
+                        </div>
+                        <div id="recentQa" class="timeline-list"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="insightsTab" class="view">
+                <div class="hero-card glass compact-hero">
+                    <div>
+                        <div class="eyebrow">Insights Engine</div>
+                        <h1>LLM-инсайты и контроль качества</h1>
+                        <p class="muted">Отдельный аналитический summary на snapshot-метриках и обезличенных диалогах.</p>
+                    </div>
+                    <div class="hero-actions">
+                        <button id="refreshInsightsBtn" class="secondary-btn">Пересчитать инсайты</button>
+                    </div>
+                </div>
+
+                <div class="two-col-layout">
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Insight summary</h2>
+                            <span id="insightSampleSize" class="muted">sample: 0</span>
+                        </div>
+                        <pre id="insightsBox" class="result-box tall"></pre>
+                    </div>
+
+                    <div class="stack-column">
+                        <div class="panel glass">
+                            <div class="panel-head">
+                                <h2>Snapshot KPI</h2>
+                                <span class="muted">Metrics</span>
+                            </div>
+                            <div id="insightsSnapshot" class="insight-list"></div>
+                        </div>
+
+                        <div class="panel glass">
+                            <div class="panel-head">
+                                <h2>Quality summary</h2>
+                                <span class="muted">AI quality scan</span>
+                            </div>
+                            <pre id="qualitySummaryBox" class="result-box medium"></pre>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="sqlTab" class="view">
+                <div class="hero-card glass compact-hero">
+                    <div>
+                        <div class="eyebrow">SQL Lab</div>
+                        <h1>Read-only SQL и просмотр датасетов</h1>
+                        <p class="muted">Только безопасные SELECT / WITH запросы, schema exploration и preview.</p>
+                    </div>
+                </div>
+
+                <div class="two-col-layout">
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>SQL Console</h2>
+                            <span class="muted">Read only</span>
+                        </div>
+                        <textarea id="sqlText" rows="10">select channel, count(*) as cnt from qa_message group by channel order by cnt desc</textarea>
+                        <div class="inline-row">
+                            <input id="sqlLimit" type="number" value="100" min="1" max="500" />
+                            <button id="runSqlBtn" class="primary-btn">Выполнить</button>
+                        </div>
+                        <div id="sqlMeta" class="muted"></div>
+                        <div id="sqlResult" class="table-wrap"></div>
+                    </div>
+
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Dataset Explorer</h2>
+                            <span class="muted">Schema / preview</span>
+                        </div>
+
+                        <div class="inline-row">
+                            <select id="tableSelect"></select>
+                            <button id="loadColumnsBtn" class="secondary-btn">Столбцы</button>
+                            <button id="previewBtn" class="secondary-btn">Preview</button>
+                        </div>
+
+                        <h3>Структура</h3>
+                        <div id="columnsBox" class="stack-list compact-list"></div>
+
+                        <h3>Preview</h3>
+                        <div id="previewBox" class="table-wrap"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="adminTab" class="view">
+                <div class="hero-card glass compact-hero">
+                    <div>
+                        <div class="eyebrow">Administration</div>
+                        <h1>Управление пользователями</h1>
+                        <p class="muted">Создание новых учёток и управление доступом.</p>
+                    </div>
+                </div>
+
+                <div class="two-col-layout">
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Создать пользователя</h2>
+                        </div>
+
+                        <form id="createUserForm" class="form-grid">
+                            <input name="username" placeholder="Логин" required />
+                            <input name="displayName" placeholder="Имя для отображения" />
+                            <input name="password" type="password" placeholder="Пароль" required />
+
+                            <label class="check-line"><input type="checkbox" name="roles" value="ADMIN"> ADMIN</label>
+                            <label class="check-line"><input type="checkbox" name="roles" value="ANALYST" checked> ANALYST</label>
+                            <label class="check-line"><input type="checkbox" name="roles" value="VIEWER"> VIEWER</label>
+
+                            <button type="submit" class="primary-btn">Создать</button>
+                        </form>
+
+                        <div id="adminMessage" class="muted"></div>
+                    </div>
+
+                    <div class="panel glass">
+                        <div class="panel-head">
+                            <h2>Текущие пользователи</h2>
+                        </div>
+                        <div id="usersBox" class="timeline-list"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+</div>
+
+<script src="/dashboard/app.js"></script>
+</body>
+</html>

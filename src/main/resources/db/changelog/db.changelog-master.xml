@@ -9,4 +9,5 @@
 
     <include file="db/changelog/initial.xml"/>
 
+    <include file="db/changelog/dashboard-001.xml"/>
 </databaseChangeLog>
